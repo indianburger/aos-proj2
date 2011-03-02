@@ -32,19 +32,19 @@ int main(int argc, char *argv[])
 				   return EXIT_FAILURE;
 			}
 			// now that i have put the packet in the queue i want to use it
-			diffie_pkt result =  get_pkt(RESP_Q);
+			diffie_pkt result =  get_pkt(RESP_Q, getpid());
 			printf(" This is the result received from the server %lld\n", result.out_result);
 			
 		}
 	}
-	if(strcmp(argv[0], "a") == 0){ // asynchronous
+	/*if(strcmp(argv[0], "a") == 0){ // asynchronous
 		synch_flag = 2;
 		printf(" This file will start accessing shared memory %s \n", argv[0]);
 		for(i=0;i<num_of_requests;i++)
 		{
 			printf("parameter %d in the process with pid =  %d\n", i, num_of_requests);
 			// create packet 
-			diffie_pkt p = (diffie_pkt*)malloc(sizeof(diffie_pkt));
+			//diffie_pkt p = (diffie_pkt*)malloc(sizeof(diffie_pkt));
 			initPacket(i, getpid(), &p);
 			// put it in message queue using put_pkt
 			ec = put_pkt(REQ_Q, p);
@@ -59,7 +59,7 @@ int main(int argc, char *argv[])
 			}
 			
 		}
-	}
+	    }*/
 		
 	return EXIT_SUCCESS;
 }

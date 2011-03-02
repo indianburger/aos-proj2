@@ -82,7 +82,7 @@ diffie_pkt get_pkt(int queue_type, int pid){
     if (msgrcv(msqid, &pkt, sizeof(diffie_pkt), pid, 0) < 0) {
         fprintf(stderr, "\nmsgget error for %d", queue_type);
         fprintf(stderr, "\nget_pkt: unlocking");
-        sem_unlock(queue_type);
+        pkt.mtype = -1;
         //TODO: return with some sort of error indication
         //null can't be set I think
     }
@@ -136,11 +136,22 @@ int sem_unlock(int queue_type){
 /* GLOBAL INITIALIZE AND CLEANUP */
 void initialize(){
     int semid = get_sem_id(IPC_CREAT);
+    
     semctl(semid, REQ_Q, SETVAL, 1); //initialize semaphore to 1
     semctl(semid, RESP_Q, SETVAL, 1); //initialize semaphore to 1
 
     get_q_id_gen(REQ_Q, IPC_CREAT);
+    while(1){
+        diffie_pkt pkt = get_pkt(REQ_Q, 0);
+        if (pkt.mtype == -1) break;
+        else fprintf(stderr, "\nDrained pkt from req q");
+    }
     get_q_id_gen(RESP_Q, IPC_CREAT);
+    while(1){
+        diffie_pkt pkt = get_pkt(RESP_Q, 0);
+        if (pkt.mtype == -1) break;
+        else fprintf(stderr, "\nDrained pkt from req q");
+    }
 
 }
 

@@ -42,7 +42,7 @@ int main(int argc, char* argv[])
 		exit(0);
 	}
 	
-	printf("i should not be printed %d\n", getpid());
+	//printf("i should not be printed %d\n", getpid());
 	child_pid = fork();
 
 	switch(child_pid){
@@ -57,14 +57,18 @@ int main(int argc, char* argv[])
 			createSharedMemory();
 			while(1){
 				
-					diffie_pkt pkt = get_pkt(RESP_Q, 0); // get_pkt server sends 0
-					pkt.out_result = computeDH(pkt.inp_x, pkt.inp_p);
-					ec = put_pkt(REQ_Q, pkt);
-					if(ec == -1){
-						fprintf(stderr, "\n unable to put_pkt for in server code");
-					    return EXIT_FAILURE;
-					}
-					//move to the next queue
+					diffie_pkt pkt = get_pkt(REQ_Q, 0); // get_pkt server sends 0
+                    if (pkt.mtype != -1){
+					    pkt.out_result = computeDH(pkt.inp_x, pkt.inp_p);
+					    ec = put_pkt(RESP_Q, pkt);
+					    if(ec == -1){
+					    	fprintf(stderr, "\n unable to put_pkt for in server code");
+					        return EXIT_FAILURE;
+					    }
+                    }
+                    else{
+                        sleep(1);
+                    }
 				}
 			break;
 
