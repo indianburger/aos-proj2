@@ -58,8 +58,6 @@ int main ( int argc, char *argv[] )
 	}
 	
 	printf("My Pid = %d\n", getpid());
-//    send_request(getpid(), 1, 2);
-//    rcv_response();
     return EXIT_SUCCESS;
 }
 
