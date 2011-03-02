@@ -11,6 +11,8 @@
 //int createSharedMemory();
 
 
+char* readPidFromFile();
+void writePidToFile(int pid);
 long long int computeDH(int x, long long int p);
 
 void SignalHandler(int sig){
@@ -32,16 +34,23 @@ int main(int argc, char* argv[])
 	int i;
 	int pid;
 	int ec;
+	char* char_pid;
+
+	signal(SIGUSR1,SignalHandler); /* catch signal */	
+	printf("reaching here! %d %s\n", argc, argv[1]);	
 	
-	signal(SIGUSR1,SignalHandler); /* catch signal */
 	if(argc > 1){
-		pid = atoi(argv[2]);
-		printf("%d", pid);
+		//printf("reaching here! inside if");
 		if(strcmp(argv[1], "stop") == 0)
-			kill(pid, SIGUSR1);	
+		{	
+			char_pid = (char*)malloc(sizeof(10));
+			readPidFromFile(char_pid);
+			printf("char pid = %d\n", atoi(char_pid)); 
+	        kill(atoi(char_pid), SIGUSR1);	
+		}
 		exit(0);
 	}
-	
+
 	//printf("i should not be printed %d\n", getpid());
 	child_pid = fork();
 
@@ -51,6 +60,7 @@ int main(int argc, char* argv[])
 		    exit(1);
 		case 0: // child process is starting here
 			printf("the child process has now started\n %d", getpid());
+			writePidToFile(getpid());
 			fflush(stdout);
 			// do shared memory allocation before the while 
 			// -1 then error
@@ -76,6 +86,29 @@ int main(int argc, char* argv[])
 			printf("in parent - will now exit\n");
 			exit(0);
 	}			
+}
+
+void writePidToFile(int pid){
+
+	FILE *file; 
+	char *str = (char*)malloc(sizeof(10));
+	file = fopen("pid.txt","w"); 
+	sprintf(str, "%d", getpid());
+	fputs(str, file);
+	fclose(file); 
+
+}
+
+char* readPidFromFile(char *str){
+	FILE *file; 
+
+	file = fopen("pid.txt","r"); 
+	printf("readPidFrom file- before fgets");
+	fgets(str,5,file);
+	printf("in readPidFrom File method - reading off the file %s\n", str);
+	return str;
+	fclose(file); 
+
 }
 
 int createSharedMemory(){
