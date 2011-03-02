@@ -16,10 +16,10 @@ void writePidToFile(int pid);
 long long int computeDH(int x, long long int p);
 
 void SignalHandler(int sig){
-	printf("in signal handler - %d", getpid());
+	//fprintf(stderr, "server signal handler: - %d", getpid());
 	switch (sig){
 		case SIGUSR1: 
-			printf("SIGUSR1 Caught - need to deallocate memory now.... \n");
+			fprintf(stderr, "\nserver: quitting. Cleaning up\n");
 			// do memory deallocation here 
 			clean_up();
 			exit(0);
@@ -59,17 +59,21 @@ int main(int argc, char* argv[])
 			perror("fork");
 		    exit(1);
 		case 0: // child process is starting here
-			printf("the child process has now started\n %d", getpid());
+			fprintf(stderr, "the child process has now started\n %d", getpid());
 			writePidToFile(getpid());
 			fflush(stdout);
+			
+
 			// do shared memory allocation before the while 
 			// -1 then error
 			createSharedMemory();
 			while(1){
 				
-					diffie_pkt pkt = get_pkt(REQ_Q, 0); // get_pkt server sends 0
+					diffie_pkt pkt = get_pkt_async(REQ_Q, 0); // get_pkt server sends 0
                     if (pkt.mtype != -1){
+					    //fprintf(stderr, "\nserver: Got packed. Let's see what I can do");
 					    pkt.out_result = computeDH(pkt.inp_x, pkt.inp_p);
+					    //fprintf(stderr, "\nserver: computed. Now going to put it back.");
 					    ec = put_pkt(RESP_Q, pkt);
 					    if(ec == -1){
 					    	fprintf(stderr, "\n unable to put_pkt for in server code");
@@ -83,7 +87,7 @@ int main(int argc, char* argv[])
 			break;
 
 		default:
-			printf("in parent - will now exit\n");
+			//printf("in parent - will now exit\n");
 			exit(0);
 	}			
 }
@@ -113,7 +117,7 @@ char* readPidFromFile(char *str){
 
 int createSharedMemory(){
 	initialize();
-	printf("in create shared memory \n");
+	//printf("in create shared memory \n");
 	return 0;
 }
 
@@ -126,7 +130,7 @@ long long int computeDH(int x, long long int p){
 		num = num * 2;
 	}
 	result = num%p;
-	printf("%lld  %lld", num, result);
+	fprintf(stderr, "\nserver computeDH:x: %d p: %lld num: %lld  result: %lld", x, p, num, result);
 	return result;
 }
 
