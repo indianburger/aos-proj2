@@ -12,12 +12,15 @@
 #define REQ_Q 0
 #define RESP_Q 1
 #define KEY_ID 1
+
+#define DUMMY_PVALUE 19
+
 typedef struct diffie_pkt {
     long mtype;
     int req_id;
     int inp_x;
-    int inp_p;
-    int out_result;
+    long long int inp_p;
+    long long int out_result;
 } diffie_pkt;
 
 
