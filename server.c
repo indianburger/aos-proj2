@@ -57,7 +57,7 @@ int main(int argc, char* argv[])
 			createSharedMemory();
 			while(1){
 				
-					diffie_pkt pkt = get_pkt(RESP_Q);
+					diffie_pkt pkt = get_pkt(RESP_Q, 0); // get_pkt server sends 0
 					pkt.out_result = computeDH(pkt.inp_x, pkt.inp_p);
 					ec = put_pkt(REQ_Q, pkt);
 					if(ec == -1){
