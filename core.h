@@ -31,13 +31,15 @@ void clean_up();
 /* QUEUE FUNCTIONS */
 int put_pkt(int queue_type, diffie_pkt pkt){
     int msqid = get_q_id(queue_type); 
-    
+    fprintf(stderr, "\nput_pkt: locking");
     sem_lock(queue_type);
     if (msgsnd(msqid, &pkt, sizeof(diffie_pkt), IPC_NOWAIT) < 0) {
         fprintf(stderr, "\nput_pkt error for queue_type: %d", queue_type);
+        fprintf(stderr, "\nput_pkt: unlocking");
         sem_unlock(queue_type);
         return -1; 
     }
+    fprintf(stderr, "\nput_pkt: unlocking");
     sem_unlock(queue_type);
     return 0;
 }
@@ -72,9 +74,11 @@ int get_q_key_id(int queue_type){
 diffie_pkt get_pkt(int queue_type, int pid){
     int msqid = get_q_id(queue_type); 
     diffie_pkt pkt;
+    fprintf(stderr, "\nget_pkt: locking");
     sem_lock(queue_type);
     if (msgrcv(msqid, &pkt, sizeof(diffie_pkt), pid, 0) < 0) {
         fprintf(stderr, "\nmsgget error for %d", queue_type);
+        fprintf(stderr, "\nget_pkt: unlocking");
         sem_unlock(queue_type);
         //TODO: return with some sort of error indication
         //null can't be set I think
@@ -82,7 +86,8 @@ diffie_pkt get_pkt(int queue_type, int pid){
     else
         pkt.out_result = pkt.inp_p * pkt.inp_x;
     //printf("Received this: %ld %d %d\n", pkt.mtype, pkt.inp_p, pkt.inp_x);
-    //put_pkt(RESP_KEY_ID, pkt);
+    //put_pkt(RESP_KEY_ID,t pkt);
+    fprintf(stderr, "\nget_pkt: unlocking");
     sem_unlock(queue_type);
     return pkt;
 }
@@ -128,8 +133,8 @@ int sem_unlock(int queue_type){
 /* GLOBAL INITIALIZE AND CLEANUP */
 void initialize(){
     int semid = get_sem_id(IPC_CREAT);
-    semctl(semid, REQ_Q, SETVAL, 0); //initialize semaphore to 0
-    semctl(semid, RESP_Q, SETVAL, 0); //initialize semaphore to 0
+    semctl(semid, REQ_Q, SETVAL, 1); //initialize semaphore to 1
+    semctl(semid, RESP_Q, SETVAL, 1); //initialize semaphore to 1
 
     get_q_id_gen(REQ_Q, IPC_CREAT);
     get_q_id_gen(RESP_Q, IPC_CREAT);
