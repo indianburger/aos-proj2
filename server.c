@@ -7,9 +7,11 @@
 #include<sys/sem.h>
 #include<sys/ipc.h>
 #include<sys/signal.h>
-
+#include "core.h"
 //int createSharedMemory();
-//long int computeDH(int x, long int p);
+
+
+long long int computeDH(int x, long long int p);
 
 void SignalHandler(int sig){
 	printf("in signal handler - %d", getpid());
@@ -56,7 +58,7 @@ int main(int argc, char* argv[])
 			while(1){
 				
 					diffie_pkt pkt = get_pkt(RESP_Q);
-					pkt->result = computeDH(pkt.inp_x, pkt.inp_p);
+					pkt.out_result = computeDH(pkt.inp_x, pkt.inp_p);
 					ec = put_pkt(REQ_Q, pkt);
 					if(ec == -1){
 						fprintf(stderr, "\n unable to put_pkt for in server code");
@@ -78,7 +80,7 @@ int createSharedMemory(){
 	return 0;
 }
 
-long int computeDH(int x, long int p){
+long long int computeDH(int x, long long int p){
 	
 	int i=0;
 	long long int num = 1;
