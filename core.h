@@ -34,15 +34,15 @@ void clean_up();
 /* QUEUE FUNCTIONS */
 int put_pkt(int queue_type, diffie_pkt pkt){
     int msqid = get_q_id(queue_type); 
-    fprintf(stderr, "\nput_pkt: locking");
+    //fprintf(stderr, "\nput_pkt: locking");
     sem_lock(queue_type);
     if (msgsnd(msqid, &pkt, sizeof(diffie_pkt), IPC_NOWAIT) < 0) {
-        fprintf(stderr, "\nput_pkt error for queue_type: %d", queue_type);
-        fprintf(stderr, "\nput_pkt: unlocking");
+        //fprintf(stderr, "\nput_pkt error for queue_type: %d", queue_type);
+        //fprintf(stderr, "\nput_pkt: unlocking");
         sem_unlock(queue_type);
         return -1; 
     }
-    fprintf(stderr, "\nput_pkt: unlocking");
+    //fprintf(stderr, "\nput_pkt: unlocking");
     sem_unlock(queue_type);
     return 0;
 }
@@ -77,20 +77,41 @@ int get_q_key_id(int queue_type){
 diffie_pkt get_pkt(int queue_type, int pid){
     int msqid = get_q_id(queue_type); 
     diffie_pkt pkt;
-    fprintf(stderr, "\nget_pkt: locking");
+    while(1){
+        //fprintf(stderr, "\nget_pkt: locking");
+        sem_lock(queue_type);
+        //fprintf(stderr, "\nget_pkt: Got lock");
+        if (msgrcv(msqid, &pkt, sizeof(diffie_pkt), pid, IPC_NOWAIT) < 0) {
+            //fprintf(stderr, "\nget_pkt %d: no msg, unlocking, sleeping and trying again", queue_type);
+            sem_unlock(queue_type);
+            sleep(1);
+        }
+        else{
+            pkt.out_result = pkt.inp_p * pkt.inp_x;
+            break;
+        }
+    }
+    //printf("Received this: %ld %d %d\n", pkt.mtype, pkt.inp_p, pkt.inp_x);
+    //put_pkt(RESP_KEY_ID,t pkt);
+    //fprintf(stderr, "\nget_pkt: unlocking");
+    sem_unlock(queue_type);
+    return pkt;
+}
+diffie_pkt get_pkt_async(int queue_type, int pid){
+    int msqid = get_q_id(queue_type); 
+    diffie_pkt pkt;
+    //fprintf(stderr, "\nget_pkt_async: locking");
     sem_lock(queue_type);
-    if (msgrcv(msqid, &pkt, sizeof(diffie_pkt), pid, 0) < 0) {
-        fprintf(stderr, "\nmsgget error for %d", queue_type);
-        fprintf(stderr, "\nget_pkt: unlocking");
+    //fprintf(stderr, "\nget_pkt_asyn: Got lock");
+    if (msgrcv(msqid, &pkt, sizeof(diffie_pkt), pid, IPC_NOWAIT) == -1) {
+        //fprintf(stderr, "\nget_pkt_async: no packets left for queue type %d", queue_type);
         pkt.mtype = -1;
-        //TODO: return with some sort of error indication
-        //null can't be set I think
     }
     else
         pkt.out_result = pkt.inp_p * pkt.inp_x;
     //printf("Received this: %ld %d %d\n", pkt.mtype, pkt.inp_p, pkt.inp_x);
     //put_pkt(RESP_KEY_ID,t pkt);
-    fprintf(stderr, "\nget_pkt: unlocking");
+    //fprintf(stderr, "\nget_pkt: unlocking");
     sem_unlock(queue_type);
     return pkt;
 }
@@ -135,20 +156,24 @@ int sem_unlock(int queue_type){
 
 /* GLOBAL INITIALIZE AND CLEANUP */
 void initialize(){
+
     int semid = get_sem_id(IPC_CREAT);
     
+    //fprintf(stderr, "\n initialize: just finished semid");
     semctl(semid, REQ_Q, SETVAL, 1); //initialize semaphore to 1
     semctl(semid, RESP_Q, SETVAL, 1); //initialize semaphore to 1
-
+    //fprintf(stderr, "\nDraining start for req q");
     get_q_id_gen(REQ_Q, IPC_CREAT);
+    //fprintf(stderr, "\nGot queueid");
     while(1){
-        diffie_pkt pkt = get_pkt(REQ_Q, 0);
+        diffie_pkt pkt = get_pkt_async(REQ_Q, 0);
         if (pkt.mtype == -1) break;
         else fprintf(stderr, "\nDrained pkt from req q");
     }
+    //fprintf(stderr, "\nDraining start for resp q");
     get_q_id_gen(RESP_Q, IPC_CREAT);
     while(1){
-        diffie_pkt pkt = get_pkt(RESP_Q, 0);
+        diffie_pkt pkt = get_pkt_async(RESP_Q, 0);
         if (pkt.mtype == -1) break;
         else fprintf(stderr, "\nDrained pkt from req q");
     }
@@ -173,6 +198,8 @@ void clean_up(){
         fprintf(stderr, "\n\nError clearing queue %d and msqid %d", RESP_Q, msqid);
 
     /* SEMAPHORE CLEANUP */
-    
+
+    if (semctl(get_sem_id(-1), 0, IPC_RMID) < 0)
+        fprintf(stderr, "\n\nclean_up: Error clearing semaphore");
 }
 
