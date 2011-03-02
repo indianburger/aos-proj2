@@ -37,7 +37,7 @@ int main(int argc, char* argv[])
 	char* char_pid;
 
 	signal(SIGUSR1,SignalHandler); /* catch signal */	
-	printf("reaching here! %d %s\n", argc, argv[1]);	
+	fprintf(stderr, "reaching here! %d %s\n", argc, argv[1]);	
 	
 	if(argc > 1){
 		//printf("reaching here! inside if");
@@ -45,7 +45,7 @@ int main(int argc, char* argv[])
 		{	
 			char_pid = (char*)malloc(sizeof(10));
 			readPidFromFile(char_pid);
-			printf("char pid = %d\n", atoi(char_pid)); 
+			fprintf(stderr, "char pid = %d\n", atoi(char_pid)); 
 	        kill(atoi(char_pid), SIGUSR1);	
 		}
 		exit(0);
@@ -129,7 +129,8 @@ long long int computeDH(int x, long long int p){
 	for(i=0;i<x;i++){
 		num = num * 2;
 	}
-	result = num%p;
+//	result = num%p;
+	result = x+p;
 	fprintf(stderr, "\nserver computeDH:x: %d p: %lld num: %lld  result: %lld", x, p, num, result);
 	return result;
 }

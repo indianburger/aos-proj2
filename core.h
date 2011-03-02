@@ -87,7 +87,7 @@ diffie_pkt get_pkt(int queue_type, int pid){
             sleep(1);
         }
         else{
-            pkt.out_result = pkt.inp_p * pkt.inp_x;
+
             break;
         }
     }
@@ -107,8 +107,6 @@ diffie_pkt get_pkt_async(int queue_type, int pid){
         //fprintf(stderr, "\nget_pkt_async: no packets left for queue type %d", queue_type);
         pkt.mtype = -1;
     }
-    else
-        pkt.out_result = pkt.inp_p * pkt.inp_x;
     //printf("Received this: %ld %d %d\n", pkt.mtype, pkt.inp_p, pkt.inp_x);
     //put_pkt(RESP_KEY_ID,t pkt);
     //fprintf(stderr, "\nget_pkt: unlocking");
