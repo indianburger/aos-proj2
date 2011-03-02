@@ -16,11 +16,12 @@ int main ( int argc, char *argv[] )
 	int i;
 	int k=0;
 	char *str;	
+	
 	if(argc < 3){
 		printf("Too few arguments\n");
 		return EXIT_FAILURE;
 	}
-	printf("%d %d\n -",atoi(argv[2]), argc);
+
 	if(strcmp(argv[1], "a") != 0 && strcmp(argv[1], "s") != 0){
 		printf(" first parameter needs to be sync or async\n");
 		return EXIT_FAILURE;

@@ -17,7 +17,7 @@ void SignalHandler(int sig){
 		case SIGUSR1: 
 			printf("SIGUSR1 Caught - need to deallocate memory now.... \n");
 			// do memory deallocation here 
-			
+			clean_up();
 			exit(0);
 			break;
 		}
@@ -52,33 +52,30 @@ int main(int argc, char* argv[])
 			fflush(stdout);
 			// do shared memory allocation before the while 
 			// -1 then error
-			//ec = createSharedMemory();
-			//if(ec != -1) // after creating shared memory stay in the while(true) loop and keep checking if the queues have anything to be computed
-				while(1){
+			createSharedMemory();
+			while(1){
 				
-					//for all queues do this 
-						//if queue has anything to compute
-						{
-							// computeDH
-							// writeResultToQueue
-						}
-						//move to the next queue
+					diffie_pkt pkt = get_pkt(RESP_Q);
+					pkt->result = computeDH(pkt.inp_x, pkt.inp_p);
+					ec = put_pkt(REQ_Q, pkt);
+					if(ec == -1){
+						fprintf(stderr, "\n unable to put_pkt for in server code");
+					    return EXIT_FAILURE;
+					}
+					//move to the next queue
 				}
-	
 			break;
 
 		default:
-			//computeDH(62,9369319);
-			
 			printf("in parent - will now exit\n");
 			exit(0);
 	}			
 }
-/*
+
 int createSharedMemory(){
+	initialize();
 	printf("in create shared memory \n");
 	return 0;
-
 }
 
 long int computeDH(int x, long int p){
@@ -94,37 +91,4 @@ long int computeDH(int x, long int p){
 	return result;
 }
 
-// compute DH and then write it to the queue.. 
-
-int writeResultToQueue(){
-	
-	int msqid; // id of the queue
-	struct msgbuf* msg;
-	int msgsz; // size of the data part in bytes
-	int msgflag = IPC_NOWAIT;
-	
-	// semaphore for obtaining the response queue 
-	int sem_set_id; // id of the semaphore set
-	int sem_val; // the initial semaphore value
-	int semaphoreId;
-	
-	sem_set_id = semget(semaphoreId, 1, IPC_CREAT | 0600)
-	if(sem_set_id == -1){
-		perror("error in semget");
-		return -1;
-	}
-	printf("semaphore created\n");
-	sem_val = 0;
-		
-	int errorcode = msgsnd(queue_id, msg, msgsz, msgflag);
-	if(errorcode == -1){
-		perror("msgsnd");
-		return -1;
-	}
-	return 0;
-}
-	
-	
-}
-*/
 
