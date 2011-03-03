@@ -6,4 +6,4 @@ compile: client.c core.h realclient.c server.c
 	touch req_key_file resp_key_file sem_key_file 
 	
 clean: 
-	rm client req_key_file resp_key_file sem_key_file server realclient
+	rm client req_key_file resp_key_file sem_key_file server realclient pid.txt

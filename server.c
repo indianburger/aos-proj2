@@ -13,7 +13,7 @@
 
 char* readPidFromFile();
 void writePidToFile(int pid);
-long long int computeDH(int x, long long int p);
+long long int computeDH(int x, long long int p, int pid);
 
 void SignalHandler(int sig){
 	//fprintf(stderr, "server signal handler: - %d", getpid());
@@ -72,7 +72,7 @@ int main(int argc, char* argv[])
 					diffie_pkt pkt = get_pkt_async(REQ_Q, 0); // get_pkt server sends 0
                     if (pkt.mtype != -1){
 					    //fprintf(stderr, "\nserver: Got packed. Let's see what I can do");
-					    pkt.out_result = computeDH(pkt.inp_x, pkt.inp_p);
+					    pkt.out_result = computeDH(pkt.inp_x, pkt.inp_p, pkt.mtype);
 					    //fprintf(stderr, "\nserver: computed. Now going to put it back.");
 					    ec = put_pkt(RESP_Q, pkt);
 					    if(ec == -1){
@@ -81,7 +81,7 @@ int main(int argc, char* argv[])
 					    }
                     }
                     else{
-                        sleep(1);
+                        //sleep(1);
                     }
 				}
 			break;
@@ -108,7 +108,7 @@ char* readPidFromFile(char *str){
 
 	file = fopen("pid.txt","r"); 
 	printf("readPidFrom file- before fgets");
-	fgets(str,5,file);
+	fgets(str,10,file);
 	printf("in readPidFrom File method - reading off the file %s\n", str);
 	return str;
 	fclose(file); 
@@ -121,7 +121,7 @@ int createSharedMemory(){
 	return 0;
 }
 
-long long int computeDH(int x, long long int p){
+long long int computeDH(int x, long long int p, int pid){
 	
 	int i=0;
 	long long int num = 1;
@@ -129,9 +129,9 @@ long long int computeDH(int x, long long int p){
 	for(i=0;i<x;i++){
 		num = num * 2;
 	}
-//	result = num%p;
-	result = x+p;
-	fprintf(stderr, "\nserver computeDH:x: %d p: %lld num: %lld  result: %lld", x, p, num, result);
+	result = num%p;
+	//result = x+p;
+	fprintf(stderr, "\nserver computeDH:pid: %d x: %d p: %lld num: %lld  result: %lld", pid, x, p, num, result);
 	return result;
 }
 

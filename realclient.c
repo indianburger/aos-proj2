@@ -44,12 +44,12 @@ int main(int argc, char *argv[])
 		synch_flag = 2;
 		async_pkt_ctr = num_of_requests;
 		diffie_pkt result;
-		printf(" This file will start accessing shared memory %s \n", argv[0]);
+		fprintf(stderr, "\n This file will start accessing shared memory %s \n", argv[0]);
 		
 		for(i=0;i<num_of_requests;i++)
 		{
 			diffie_pkt p ;
-			fprintf(stderr, "process with pid =  %d , number of requests = %d, and this is request # = %d\n", getpid(), num_of_requests, i);
+			fprintf(stderr, "\nprocess with pid =  %d , number of requests = %d, and this is request # = %d\n", getpid(), num_of_requests, i);
 			
 			// create packet 
 			//diffie_pkt p = (diffie_pkt*)malloc(sizeof(diffie_pkt));
@@ -65,17 +65,21 @@ int main(int argc, char *argv[])
 			if(i%10 == 0){
 				// now that i have put the packet in the queue i want to use it
 				do{
-					fprintf(stderr," in real client do-while\n");
+					fprintf(stderr,"\nrealclient: inside 10");
 					result = get_pkt_async(RESP_Q, getpid());
 					
 					if(result.mtype != -1){
 						async_pkt_ctr--;
-						fprintf(stderr," This is the aysnc result received at realclient pid =%d from the server %lld\n", getpid(), result.out_result);
+						fprintf(stderr,"\nNOT DRAINED realclient:result received at realclient pid =%d from the server %lld\n", getpid(), result.out_result);
 					}
 					
 				}while(result.mtype != -1);
 
 			}
+            else{
+                //sleep(1);
+                usleep(1000 * 100);   
+            }
 			
 		}
 		if(async_pkt_ctr != 0){
@@ -84,12 +88,12 @@ int main(int argc, char *argv[])
 					result = get_pkt_async(RESP_Q, getpid());
 					if(result.mtype != -1){
 						async_pkt_ctr--;
-						fprintf(stderr," Draining: This is the aysnc result received at realclient pid =%d from the server %lld\n", getpid(), result.out_result);
+						fprintf(stderr,"\nDRAINING: result received at realclient pid =%d from the server %lld\n", getpid(), result.out_result);
 					}
 					
 				}while(async_pkt_ctr != 0);
 		}
-	    }
+   }
 		
 	return EXIT_SUCCESS;
 }
@@ -98,7 +102,7 @@ void initPacket(int i, int pid, diffie_pkt *pkt){
 	// create packet
 	// give it some values
 	
-	pkt->inp_x = i*3;
+	pkt->inp_x = i*3 % 63;
 	pkt->inp_p = DUMMY_PVALUE;
 	pkt->mtype = pid;
 	pkt->req_id = i;	
